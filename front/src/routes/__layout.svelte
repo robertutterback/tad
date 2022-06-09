@@ -1,106 +1,177 @@
 <script>
-  import Button from '@smui/button';
-  import TopAppBar, { Row, Section, Title, AutoAdjust } from '@smui/top-app-bar';
+  // Top bar stuff
+  import TopAppBar, {
+    Row,
+    Section,
+    Title as TopBarTitle,
+    AutoAdjust,
+  } from '@smui/top-app-bar';
   import IconButton from '@smui/icon-button';
-  import List, { Item, Text } from '@smui/list';
-  import { Label, Icon } from '@smui/common';
-  import { Svg } from '@smui/common/elements';
-  import { mdiMenu, mdiAccountCircle } from '@mdi/js';
+
+  let topAppBar;
+
+  // Drawer stuff
   import Drawer, {
     AppContent,
     Content,
     Header,
+    Title as DrawerTitle,
     Subtitle,
+    Scrim,
   } from '@smui/drawer';
+  import Button, { Label } from '@smui/button';
+  import List, { Item, Text, Graphic, Separator, Subheader } from '@smui/list';
+  import { H6 } from '@smui/common/elements';
 
-  let topAppBar;
-  let drawerMenuOpen = false;
+  let open = false;
+  let active = 'Inbox';
 
-  let active = 'Gray Kittens';
-  function setActive(value) { active = value; }
+  function setActive(value) {
+    active = value;
+    open = false;
+  }
 </script>
 
+<header>
 <TopAppBar bind:this={topAppBar} variant="standard">
   <Row>
     <Section>
-      <IconButton aria-label="Menu" on:click={() => (drawerMenuOpen = !drawerMenuOpen)}>
-	<Icon component={Svg} viewBox="0 0 24 24">
-	  <path fill="currentColor" d={mdiMenu} />
-	</Icon>
-      </IconButton>
-      <Title>TAD</Title>
+      <IconButton class="material-icons" on:click={() => (open = !open)} >menu</IconButton>
+      <TopBarTitle>TED</TopBarTitle>
     </Section>
     <Section align="end" toolbar>
-      <IconButton aria-label="Account" on:click={() => alert('not implemented')}>
-	<Icon component={Svg} viewBox="0 0 24 24">
-	  <path fill="currentColor" d={mdiAccountCircle} />
-	</Icon>
-      </IconButton>
+      <IconButton class="material-icons" aria-label="Account">account_circle</IconButton>
     </Section>
   </Row>
 </TopAppBar>
+</header>
 
+
+<AutoAdjust {topAppBar}>
 <div class="drawer-container">
-  <Drawer variant="dismissible" bind:drawerMenuOpen>
+  <!-- Don't include fixed={false} if this is a page wide drawer.
+        It adds a style for absolute positioning. -->
+  <Drawer variant="modal" fixed={false} bind:open>
     <Header>
-      <Title>Super Drawer</Title>
-      <Subtitle>The best drawer.</Subtitle>
+      <DrawerTitle>Super Mail</DrawerTitle>
+      <Subtitle>The best fake mail app drawer.</Subtitle>
     </Header>
     <Content>
       <List>
         <Item
           href="javascript:void(0)"
-          on:click={() => setActive('Gray Kittens')}
-          activated={active === 'Gray Kittens'}
+          on:click={() => setActive('Inbox')}
+          activated={active === 'Inbox'}
         >
-          <Text>Gray Kittens</Text>
+          <Graphic class="material-icons" aria-hidden="true">inbox</Graphic>
+          <Text>Inbox</Text>
         </Item>
         <Item
           href="javascript:void(0)"
-          on:click={() => setActive('A Space Rocket')}
-          activated={active === 'A Space Rocket'}
+          on:click={() => setActive('Star')}
+          activated={active === 'Star'}
         >
-          <Text>A Space Rocket</Text>
+          <Graphic class="material-icons" aria-hidden="true">star</Graphic>
+          <Text>Star</Text>
         </Item>
         <Item
           href="javascript:void(0)"
-          on:click={() => setActive('100 Pounds of Gravel')}
-          activated={active === '100 Pounds of Gravel'}
+          on:click={() => setActive('Sent Mail')}
+          activated={active === 'Sent Mail'}
         >
-          <Text>100 Pounds of Gravel</Text>
+          <Graphic class="material-icons" aria-hidden="true">send</Graphic>
+          <Text>Sent Mail</Text>
         </Item>
         <Item
           href="javascript:void(0)"
-          on:click={() => setActive('All of the Shrimp')}
-          activated={active === 'All of the Shrimp'}
+          on:click={() => setActive('Drafts')}
+          activated={active === 'Drafts'}
         >
-          <Text>All of the Shrimp</Text>
+          <Graphic class="material-icons" aria-hidden="true">drafts</Graphic>
+          <Text>Drafts</Text>
+        </Item>
+
+        <Separator />
+        <Subheader component={H6}>Labels</Subheader>
+        <Item
+          href="javascript:void(0)"
+          on:click={() => setActive('Family')}
+          activated={active === 'Family'}
+        >
+          <Graphic class="material-icons" aria-hidden="true">bookmark</Graphic>
+          <Text>Family</Text>
         </Item>
         <Item
           href="javascript:void(0)"
-          on:click={() => setActive('A Planet with a Mall')}
-          activated={active === 'A Planet with a Mall'}
+          on:click={() => setActive('Friends')}
+          activated={active === 'Friends'}
         >
-          <Text>A Planet with a Mall</Text>
+          <Graphic class="material-icons" aria-hidden="true">bookmark</Graphic>
+          <Text>Friends</Text>
+        </Item>
+        <Item
+          href="javascript:void(0)"
+          on:click={() => setActive('Work')}
+          activated={active === 'Work'}
+        >
+          <Graphic class="material-icons" aria-hidden="true">bookmark</Graphic>
+          <Text>Work</Text>
         </Item>
       </List>
     </Content>
   </Drawer>
-</div>
 
-<AutoAdjust {topAppBar} style="display: flex; justify-content: space-between;">
-  <div class="container"><slot /></div>
+  <!-- Don't include fixed={false} if this is a page wide drawer.
+        It adds a style for absolute positioning. -->
+  <Scrim fixed={false} />
+  <AppContent class="app-content">
+    <main class="main-content">
+      <br />
+      <pre class="status">Active: {active}</pre>
+      And some stuff at the bottom.
+      <slot/>
+    </main>
+  </AppContent>
+</div>
 </AutoAdjust>
 
+<footer>
+  Footer goes here.
+</footer>
+
 <style>
+  header {
+    vertical-align: middle;
+  }
+    /* These classes are only needed because the
+    drawer is in a container on the page. */
   .drawer-container {
-    position: relative;
     display: flex;
-    height: 350px;
-    max-width: 600px;
     border: 1px solid
       var(--mdc-theme-text-hint-on-background, rgba(0, 0, 0, 0.1));
     overflow: hidden;
     z-index: 0;
+  }
+  * :global(.app-content) {
+    flex: auto;
+    overflow: auto;
+    position: relative;
+    flex-grow: 1;
+  }
+  .main-content {
+    overflow: auto;
+    padding: 16px;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Hide everything above this top app bar. */
+  :global(app),
+  :global(body),
+  :global(html) {
+    display: block !important;
+    height: auto !important;
+    width: auto !important;
+    position: static !important;
   }
 </style>
