@@ -68,7 +68,4 @@
     display: flex;
     justify-content: center;
   }
-  .unsupported {
-    border: 0.2em solid red;
-  }
 </style>

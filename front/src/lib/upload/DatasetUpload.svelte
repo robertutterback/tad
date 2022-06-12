@@ -9,6 +9,64 @@
   export let supportedFileTypes, unsupportedFileTypes;
   let includeTopLevelFolder = false;
 
+  async function entryAsFile(entry) {
+    let file = await new Promise((resolve,reject) => {
+      entry.file(file => {
+	console.log(file);
+	resolve(file);
+      }, err => reject(err));
+    });
+    file.fullPath = entry.fullPath
+    return file;
+  }
+
+  // https://stackoverflow.com/questions/3590058/does-html5-allow-drag-drop-upload-of-folders-or-a-folder-tree
+  // --- begin stackoverflow ---
+  // Drop handler function to get all files. Use BFS to traverse
+  // entire directory/file structure
+  async function getAllFileEntries(dataTransferItemList) {
+    let droppedFiles = [];
+    let queue = [];
+    // Unfortunately dataTransferItemList is not iterable i.e. no forEach
+    for (let i = 0; i < dataTransferItemList.length; i++) {
+      queue.push(dataTransferItemList[i].webkitGetAsEntry());
+    }
+    while (queue.length > 0) {
+      let entry = queue.shift();
+      if (entry.isFile) {
+	droppedFiles.push(await entryAsFile(entry));	
+      } else if (entry.isDirectory) {
+	let reader = entry.createReader();
+	queue.push(...await readAllDirectoryEntries(reader));
+      }
+    }
+    return droppedFiles;
+  }
+
+  // Get all the entries (files or sub-directories) in a directory by calling readEntries until it returns empty array
+  async function readAllDirectoryEntries(directoryReader) {
+    let entries = [];
+    let readEntries = await readEntriesPromise(directoryReader);
+    while (readEntries.length > 0) {
+      entries.push(...readEntries);
+      readEntries = await readEntriesPromise(directoryReader);
+    }
+    return entries;
+  }
+
+  // Wrap readEntries in a promise to make working with readEntries easier
+  async function readEntriesPromise(directoryReader) {
+    try {
+      return await new Promise((resolve, reject) => {
+	directoryReader.readEntries(resolve, reject);
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  // --- end stackoverflow
+
   function prettySize(size) {
     const suffixes = new Map([['GB', 1024**3], ['MB', 1024**2],
 			      ['KB', 1024], ['B', 1]]);
@@ -29,8 +87,11 @@
   }
 
   function transform(file) {
-    const path = file.webkitRelativePath || '/' + file.name;
+    const path = file.fullPath || file.webkitRelativePath || '/' + file.name;
     const parts = path.split('/');
+    parts.shift(); // should start with /
+    if (!includeTopLevelFolder && parts.length > 1)
+      parts.shift();
     const dirpath = parts.slice(0,-1).join('/') + '/';
     const filename = parts.at(-1);
     const size = prettySize(file.size);
@@ -60,16 +121,17 @@
     inputRef.click();
   }
 
-  function handleDrop(e) {
+  function handleDropFiles(e) {
     e.stopPropagation();
     e.preventDefault();
-    console.log(e.target.webkitEntries);
     addFiles(e.dataTransfer.files);
   }
-  function stopProp(e) {e.stopPropagation(); e.preventDefault();}
-  function addFolder(e) {
-    addFiles(e.target.files);
+  async function handleDrop(e) {
+    let items = await getAllFileEntries(event.dataTransfer.items);
+    addFiles(items);
   }
+  
+  function stopProp(e) {e.stopPropagation(); e.preventDefault();}
   function innerCheck(e) {
     includeTopLevelFolder = !includeTopLevelFolder;
   }
@@ -78,7 +140,7 @@
 <div class="zone-container">
     <Paper elevation=7 use={[[Ripple, {surface: true}]]}
 	   style="text-align: center; width: 100%; margin: 1%" color="secondary"
-	   on:dragenter={stopProp} on:dragover={stopProp} on:drop={handleDrop}
+	   on:dragenter={stopProp} on:dragover={stopProp} on:drop$preventDefault={handleDrop}
            on:click={() => openFileDialog(fileInputRef)}>
       <Title>
 	<Graphic style="color: inherit; margin-right: 1%;"
@@ -91,7 +153,7 @@
     </Paper>
     <Paper variant="outlined" elevation=7 use={[[Ripple, {surface: true}]]}
 	   style="text-align: center; width: 100%; margin: 1%" color="secondary"
-	   on:dragenter={stopProp} on:dragover={stopProp} on:drop={handleDrop}
+	   on:dragenter={stopProp} on:dragover={stopProp} on:drop$preventDefault={handleDrop}
 	   on:click={() => openFileDialog(folderInputRef)}>
       <Title>
 	<Graphic style="color: inherit; margin-right: 1%;"
@@ -107,7 +169,7 @@
 	</span>
       </FormField>
       <input type="file" webkitdirectory style="display: none;" bind:this={folderInputRef}
-	     on:change={addFolder}/>
+	     on:change={(e) => addFiles(e.target.files)}/>
     </Paper>
 </div>
 
