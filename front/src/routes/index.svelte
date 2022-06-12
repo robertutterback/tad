@@ -2,7 +2,7 @@
 
 </script>
 
-<p>Some content here.</p>
+<p>You are home. What is supposed to go here?</p>
 
 <style>
 
