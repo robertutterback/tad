@@ -1,16 +1,19 @@
 # Text Analytics Dashboard
 
-Note that the =front/= directory still contains traditional "back-end"
+Note that the `front/` directory still contains traditional "back-end"
 things to communicate with the NLP back-end.
 
 ## User Interface
 
-I really like Material. There is [Svelte
-Material](https://sveltematerialui.com/), however it didn't work
-out-of-the-box for me. Also, there is a lot going on there -- I don't
-necessarily like have custom components for everything. I'd like to
-have mostly CSS with some custom component behavior where I need
-it. So maybe [Matter](https://github.com/finnhvman/matter) is a better
-solution. Normally I would just say stick with the easiest solution,
-but since Svelte Material didn't work right away...
+Material (by Google) looks nice and seems like a reasonable UI choice
+(though I don't know much about UI). I am using [Svelte
+Material](https://sveltematerialui.com/) for now, although I'm not
+sure I like custom components for everything. Seems like most things
+should just be a CSS file, and ideally I know how it all
+works. Although maybe Material design specifies so much behavior that
+we need custom components for everything anyway. 
+
+An alternative is [Matter](https://github.com/finnhvman/matter), but I
+don't think I have time to work with it, considering my lack of
+knowledge of CSS.
 
