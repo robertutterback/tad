@@ -1,12 +1,25 @@
+import fs from 'fs';
+import path from 'path';
+
 export async function post({ request }) {
-  // console.log(request);
-  // console.log(await request.text());
+  const baseDir = path.normalize(path.join(process.cwd(), "..", "raw"));
+  const user = "userid";
+  const prefix = `${user}__`;
 
   const data = await request.formData();
   
   const name = data.get('datasetName');
+  const folder = prefix + name.replaceAll(' ', '_');
   data.delete('datasetName');
   console.log(name);
+
+  if (fs.existsSync(path.join(baseDir, folder))) {
+    console.log(`${folder} already exists!`);
+    return {
+      status: 409,
+      body: {"error": `Dataset ${name} already exists.`}
+    }
+  }
   
   const pathInfo = JSON.parse(data.get('pathInfo'));
   data.delete('pathInfo');
@@ -20,7 +33,16 @@ export async function post({ request }) {
     }
     
     console.log(`---------- <${origPath}> [${pathInfo[origPath].type}] ----------`);
-    console.log(await file.text());
+    // console.log(await file.text());
+    
+    const finalPath = path.join(baseDir, folder, origPath);
+    console.log(`Will write to ${finalPath}`);
+    try {
+      fs.mkdirSync(path.dirname(finalPath), {recursive: true});
+      fs.createWriteStream(finalPath).write(Buffer.from(await file.arrayBuffer()));
+    } catch (err) {
+      console.log(err);
+    }
     console.log(`---------- </${origPath}> ----------`);
   }
 

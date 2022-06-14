@@ -43,7 +43,11 @@
       }
     }
     data.append("datasetName", datasetName);
-    data.append("pathInfo", JSON.stringify(Object.fromEntries(fileInfo)));
+
+    // Some files are unsupported, so lets remove them from `fileInfo` first
+    const uploaded = Array.from(fileInfo.keys()).filter(f => f.type != 'Unsupported');
+    const realInfo = new Map(uploaded.map(k => [k, fileInfo.get(k)]))
+    data.append("pathInfo", JSON.stringify(Object.fromEntries(realInfo)));
 
     const response = await fetch("/upload", {
       method: "POST",
