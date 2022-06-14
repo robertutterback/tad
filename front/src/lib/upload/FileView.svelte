@@ -2,6 +2,7 @@
   import DataTable, {Head,Body,Cell,Pagination} from '@smui/data-table';
   import IconButton from '@smui/icon-button';
   import FileRow from '$lib/upload/FileRow.svelte';
+  import Tooltip, { Wrapper } from '@smui/tooltip';
 
   export let files;
 
@@ -9,30 +10,11 @@
     files.delete(fullpath);
     files = files; // trigger update
   }
-
-  /// @TODO: Highlight unsupported files in red, note (tooltip) that they will not be uploaded.
-
-  /// @TODO: allow changing path (just click to modify directory path)
-
-  /// @TODO: allow sorting
-
-  /// @TODO: pagination (or scrolling?)
-  // let rowsPerPage = 2;
-  // let currentPage = 0;
-
-  // $: start = currentPage * rowsPerPage;
-  // $: end = Math.min(start + rowsPerPage, items.length);
-  // $: slice = items.slice(start, end);
-  // $: lastPage = Math.max(Math.ceil(items.length / rowsPerPage) - 1, 0);
- 
-  // $: if (currentPage > lastPage) {
-  //   currentPage = lastPage;
-  // }
-
 </script>
 
+{#if files.size > 0 }
 <div>
-  <DataTable table$aria-label="File list" style="width: 100%;">
+  <DataTable table$aria-label="File list">
     <Head><FileRow>
 	<Cell>Directory Path</Cell>
 	<Cell>Filename</Cell>
@@ -41,31 +23,42 @@
 	<Cell>Delete</Cell>
     </FileRow></Head>
     <Body>
-      <!-- {#each Object.keys(files).map(k => files[k]) as file} -->
-	{#each Array.from(files) as [path, info] (path) }
-	  <FileRow>
-	    <Cell style="width: 40%;">{info.dirpath}</Cell>
-	    <Cell style="width: 40%;">{info.filename}</Cell>
-	    <!-- Cleaner way to do this? -->
-	    {#if info.type === "Unsupported"}
-	      <Cell style="border: 0.2em solid red" >{info.type}</Cell>
-	    {:else}
-	      <Cell>{info.type}</Cell>
-	    {/if}
-	    <Cell>{info.size}</Cell>
-	    <Cell><IconButton class="material-icons"
+      {#each Array.from(files) as [path, info] (path) }
+	<Wrapper>
+	  <FileRow class="{info._type === 'Unsupported' ? 'unsupported' : ''}">
+	    <Cell style="width: 40%;">{info._dirPath}</Cell>
+	    <Cell style="width: 20%;">{info._filename}</Cell>
+	    <Cell>{info._type}</Cell>
+	  <Cell>{info._size}</Cell>
+	  <Cell><IconButton class="material-icons"
 			      on:click={() => remove(path)}>
 		delete
 	    </IconButton></Cell>
 	  </FileRow>
+	  {#if info._type === 'Unsupported'}
+	    <Tooltip>File type not supported; will not be uploaded.</Tooltip>
+	  {/if}
+	</Wrapper>
       {/each}
     </Body>
   </DataTable>
 </div>
+{/if}
 
 <style>
   div {
     display: flex;
     justify-content: center;
+  }
+  :global(table) {
+    overflow: hidden;
+    border-collapse: collapse;
+    box-sizing: border-box;
+    width: 100%;
+  }
+  :global(.unsupported) {
+    border: 0.2em solid var(--mdc-theme-primary, #ff3e00);
+    background-color: var(--mdc-theme-secondary, #676778);
+    opacity: 0.5;
   }
 </style>

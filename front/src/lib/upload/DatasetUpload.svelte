@@ -7,12 +7,11 @@
   
   export let files;
   export let supportedFileTypes, unsupportedFileTypes;
-  let includeTopLevelFolder = false;
+  let includeTopLevelFolder = true;
 
   async function entryAsFile(entry) {
     let file = await new Promise((resolve,reject) => {
       entry.file(file => {
-	console.log(file);
 	resolve(file);
       }, err => reject(err));
     });
@@ -88,15 +87,15 @@
 
   function transform(file) {
     const path = file.fullPath || file.webkitRelativePath || '/' + file.name;
+    file._origPath = path;
     const parts = path.split('/');
     parts.shift(); // should start with /
     if (!includeTopLevelFolder && parts.length > 1)
       parts.shift();
-    const dirpath = parts.slice(0,-1).join('/') + '/';
-    const filename = parts.at(-1);
-    const size = prettySize(file.size);
-    const type = guessType(filename);
-    return {dirpath, filename, path: dirpath+filename, size, type};
+    file._dirPath = parts.slice(0,-1).join('/') + '/';
+    file._filename = parts.at(-1);
+    file._size = prettySize(file.size);
+    file._type = guessType(file._filename);
   }
   
   /* type DataFile {
@@ -109,9 +108,9 @@
   */
   function addFiles(filelist) {
     for (var file of filelist) {
-      const f = transform(file);
-      if (!files.has(f.path))
-	files.set(f.path, f);
+      transform(file);
+      if (!files.has(file._origPath))
+	files.set(file._origPath, file);
     }
     files = files; // trigger update
   }
@@ -163,7 +162,7 @@
       <Subtitle>Drag-and-drop a folder or click to browse.</Subtitle>
       <!-- Need specific click handlers to prevent the upload dialog from opening. -->
       <FormField on:click$stopPropagation >
-	<Checkbox on:click={innerCheck} />
+	<Checkbox on:click={innerCheck} bind:checked={includeTopLevelFolder} />
 	<span slot="label" on:click$stopPropagation={innerCheck}>
 	  Include top-level folder name in path
 	</span>

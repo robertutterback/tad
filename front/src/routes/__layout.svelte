@@ -24,7 +24,7 @@
     Subtitle,
     Scrim,
   } from '@smui/drawer';
-  import Button, { Label } from '@smui/button';
+  // import Button, { Label } from '@smui/button';
   import List, { Item, Text, Separator, Subheader } from '@smui/list';
   import { H6 } from '@smui/common/elements';
   import Autocomplete from '@smui-extra/autocomplete';
@@ -41,71 +41,79 @@
   }
 </script>
 
-<header>
-  <TopAppBar bind:this={topAppBar} variant="standard">
-    <Row>
-      <Section>
-	<IconButton class="material-icons" on:click={() => (open = !open)} >menu</IconButton>
-	<!-- <TopBarTitle>TED</TopBarTitle> -->
-      </Section>
-      <Section align="end" toolbar>
-	<IconButton class="material-icons" aria-label="Account">account_circle</IconButton>
-      </Section>
-    </Row>
-  </TopAppBar>
-</header>
+<div class="all-but-footer">
+  <header>
+    <TopAppBar bind:this={topAppBar} variant="standard">
+      <Row>
+	<Section>
+	  <IconButton class="material-icons" on:click={() => (open = !open)} >menu</IconButton>
+	  <!-- <TopBarTitle>TED</TopBarTitle> -->
+	</Section>
+	<Section align="end" toolbar>
+	  <IconButton class="material-icons" aria-label="Account">account_circle</IconButton>
+	</Section>
+      </Row>
+    </TopAppBar>
+  </header>
 
+  <AutoAdjust {topAppBar}>
+    <div class="drawer-container">
+      <!-- Don't include fixed={false} if this is a page wide drawer.
+           It adds a style for absolute positioning. -->
+      <Drawer variant="modal" fixed={false} bind:open>
+	<Header>
+	  <DrawerTitle>TED</DrawerTitle>
+	  <!-- <Subtitle>Text Exploration Dashboard</Subtitle> -->
+	  <Autocomplete style="margin-top: 10%"
+			options={datasets} textfield$variant="outlined"
+			bind:value={currentDataset} label="Dataset" />
+	</Header>
+	<Content>
+	  <List>
+	    <DMenuLink route="/upload" bind:active bind:open icon="upload" />
+	    <DMenuLink route="/wrangle" bind:active bind:open icon="tab_unselected" />
+	    <DMenuLink route="/annotate" bind:active bind:open icon="new_label" />
+	    <DMenuLink route="/explore" bind:active bind:open icon="explore" />
+            <Separator />
+            <Subheader component={H6}>Dashboards</Subheader>
+	    <DMenuLink route="/" bind:active bind:open text="(empty)" icon="bookmark" />
+	  </List>
+	</Content>
+      </Drawer>
 
-<AutoAdjust {topAppBar}>
-  <div class="drawer-container">
-    <!-- Don't include fixed={false} if this is a page wide drawer.
-         It adds a style for absolute positioning. -->
-    <Drawer variant="modal" fixed={false} bind:open>
-      <Header>
-	<DrawerTitle>TED</DrawerTitle>
-	<!-- <Subtitle>Text Exploration Dashboard</Subtitle> -->
-	<Autocomplete style="margin-top: 10%"
-	  options={datasets} textfield$variant="outlined"
-	  bind:value={currentDataset} label="Dataset" />
-      </Header>
-      <Content>
-	<List>
-	  <DMenuLink route="/upload" bind:active bind:open icon="upload" />
-	  <DMenuLink route="/wrangle" bind:active bind:open icon="tab_unselected" />
-	  <DMenuLink route="/annotate" bind:active bind:open icon="new_label" />
-	  <DMenuLink route="/explore" bind:active bind:open icon="explore" />
-          <Separator />
-          <Subheader component={H6}>Dashboards</Subheader>
-	  <DMenuLink route="/" bind:active bind:open text="(empty)" icon="bookmark" />
-	</List>
-      </Content>
-    </Drawer>
-
-    <!-- Don't include fixed={false} if this is a page wide drawer.
-         It adds a style for absolute positioning. -->
-    <Scrim fixed={false} />
-    <AppContent class="app-content">
-      <main class="main-content">
-	<slot/>
-      </main>
-    </AppContent>
-  </div>
-</AutoAdjust>
+      <!-- Don't include fixed={false} if this is a page wide drawer.
+           It adds a style for absolute positioning. -->
+      <Scrim fixed={false} />
+      <AppContent class="app-content">
+	<main class="main-content">
+	  <slot/>
+	</main>
+      </AppContent>
+    </div>
+  </AutoAdjust>
+</div> <!-- all-but-footer -->
 
 <footer>
   Footer goes here.
 </footer>
 
 <style>
-  header {
-    vertical-align: middle;
+  footer {
+    text-align: center;
+    background-color: var(--mdc-theme-secondary, #676778);
+    color: var(--mdc-theme-on-secondary, #fff);
+    position: sticky;
+    top: 100%;
+    height: 1.5rem;
   }
+  .all-but-footer {
+    min-height: calc(100vh - 1.5em);
+  }
+
   /* These classes are only needed because the
     drawer is in a container on the page. */
   .drawer-container {
     display: flex;
-    border: 1px solid
-		var(--mdc-theme-text-hint-on-background, rgba(0, 0, 0, 0.1));
     overflow: hidden;
     z-index: 0;
   }
@@ -130,5 +138,6 @@
     height: auto !important;
     width: auto !important;
     position: static !important;
+    margin: 0;
   }
 </style>
