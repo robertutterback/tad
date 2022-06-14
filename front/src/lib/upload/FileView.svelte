@@ -1,18 +1,17 @@
 <script>
+  import { createEventDispatcher } from 'svelte';
+  
   import DataTable, {Head,Body,Cell,Pagination} from '@smui/data-table';
   import IconButton from '@smui/icon-button';
   import FileRow from '$lib/upload/FileRow.svelte';
   import Tooltip, { Wrapper } from '@smui/tooltip';
 
-  export let files;
+  const dispatch = createEventDispatcher();
 
-  function remove(fullpath) {
-    files.delete(fullpath);
-    files = files; // trigger update
-  }
+  export let fileInfo;
 </script>
 
-{#if files.size > 0 }
+{#if fileInfo.size > 0 }
 <div>
   <DataTable table$aria-label="File list">
     <Head><FileRow>
@@ -23,19 +22,19 @@
 	<Cell>Delete</Cell>
     </FileRow></Head>
     <Body>
-      {#each Array.from(files) as [path, info] (path) }
+      {#each Array.from(fileInfo) as [path, info] (path) }
 	<Wrapper>
-	  <FileRow class="{info._type === 'Unsupported' ? 'unsupported' : ''}">
-	    <Cell style="width: 40%;">{info._dirPath}</Cell>
-	    <Cell style="width: 20%;">{info._filename}</Cell>
-	    <Cell>{info._type}</Cell>
-	  <Cell>{info._size}</Cell>
+	  <FileRow class="{info.type === 'Unsupported' ? 'unsupported' : ''}">
+	    <Cell style="width: 40%;">{info.dirPath}</Cell>
+	    <Cell style="width: 20%;">{info.filename}</Cell>
+	    <Cell>{info.type}</Cell>
+	  <Cell>{info.size}</Cell>
 	  <Cell><IconButton class="material-icons"
-			      on:click={() => remove(path)}>
+			      on:click={() => dispatch('removeFile', path)}>
 		delete
 	    </IconButton></Cell>
 	  </FileRow>
-	  {#if info._type === 'Unsupported'}
+	  {#if info.type === 'Unsupported'}
 	    <Tooltip>File type not supported; will not be uploaded.</Tooltip>
 	  {/if}
 	</Wrapper>

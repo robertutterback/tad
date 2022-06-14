@@ -5,7 +5,7 @@
   import Checkbox from '@smui/checkbox';
   import FormField from '@smui/form-field';
   
-  export let files;
+  export let fileData, fileInfo;
   export let supportedFileTypes, unsupportedFileTypes;
   let includeTopLevelFolder = true;
 
@@ -85,17 +85,17 @@
     return 'Unknown';
   }
 
-  function transform(file) {
-    const path = file.fullPath || file.webkitRelativePath || '/' + file.name;
-    file._origPath = path;
-    const parts = path.split('/');
+  function getInfo(file) {
+    const origPath = file.fullPath || file.webkitRelativePath || '/' + file.name;
+    const parts = origPath.split('/');
     parts.shift(); // should start with /
     if (!includeTopLevelFolder && parts.length > 1)
       parts.shift();
-    file._dirPath = parts.slice(0,-1).join('/') + '/';
-    file._filename = parts.at(-1);
-    file._size = prettySize(file.size);
-    file._type = guessType(file._filename);
+    const dirPath = parts.slice(0,-1).join('/') + '/';
+    const filename = parts.at(-1);
+    const size = prettySize(file.size);
+    const type = guessType(filename);
+    return {origPath, dirPath, filename, size, type};
   }
   
   /* type DataFile {
@@ -108,11 +108,13 @@
   */
   function addFiles(filelist) {
     for (var file of filelist) {
-      transform(file);
-      if (!files.has(file._origPath))
-	files.set(file._origPath, file);
+      const info = getInfo(file);
+      if (!fileInfo.has(info.origPath)) {
+	fileInfo.set(info.origPath, info);
+	fileData.set(info.origPath, file);
+      }
     }
-    files = files; // trigger update
+    fileInfo = fileInfo; fileData = fileData; // trigger updates
   }
 
   let fileInputRef, folderInputRef;
@@ -120,17 +122,11 @@
     inputRef.click();
   }
 
-  function handleDropFiles(e) {
-    e.stopPropagation();
-    e.preventDefault();
-    addFiles(e.dataTransfer.files);
-  }
   async function handleDrop(e) {
     let items = await getAllFileEntries(event.dataTransfer.items);
     addFiles(items);
   }
   
-  function stopProp(e) {e.stopPropagation(); e.preventDefault();}
   function innerCheck(e) {
     includeTopLevelFolder = !includeTopLevelFolder;
   }
@@ -139,7 +135,8 @@
 <div class="zone-container">
     <Paper elevation=7 use={[[Ripple, {surface: true}]]}
 	   style="text-align: center; width: 100%; margin: 1%" color="secondary"
-	   on:dragenter={stopProp} on:dragover={stopProp} on:drop$preventDefault={handleDrop}
+	   on:dragenter$preventDefault on:dragover$preventDefault
+	   on:drop$preventDefault={handleDrop}
            on:click={() => openFileDialog(fileInputRef)}>
       <Title>
 	<Graphic style="color: inherit; margin-right: 1%;"
@@ -152,7 +149,8 @@
     </Paper>
     <Paper variant="outlined" elevation=7 use={[[Ripple, {surface: true}]]}
 	   style="text-align: center; width: 100%; margin: 1%" color="secondary"
-	   on:dragenter={stopProp} on:dragover={stopProp} on:drop$preventDefault={handleDrop}
+	   on:dragenter$preventDefault on:dragover$preventDefault
+	   on:drop$preventDefault={handleDrop}
 	   on:click={() => openFileDialog(folderInputRef)}>
       <Title>
 	<Graphic style="color: inherit; margin-right: 1%;"
