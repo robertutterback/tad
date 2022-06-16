@@ -3,7 +3,8 @@
   /// components. However, as a Svelte beginner I'm worried that will
   /// make it harder to debug. So for now, I'm keeping all this here
   /// so I can look at all the code together.
-  
+  import { session } from '$app/stores';
+
   // Top bar stuff
   import TopAppBar, {
     Row,
@@ -24,7 +25,8 @@
     Subtitle,
     Scrim,
   } from '@smui/drawer';
-  // import Button, { Label } from '@smui/button';
+  
+  import Button, { Label } from '@smui/button';
   import List, { Item, Text, Separator, Subheader } from '@smui/list';
   import { H6 } from '@smui/common/elements';
   import Autocomplete from '@smui-extra/autocomplete';
@@ -39,6 +41,27 @@
     active = value;
     open = false;
   }
+
+  async function logout(e) {
+    const response = await fetch('/logout', {
+      method: 'GET',
+      headers: {
+	'Content-Type': 'application/json',
+	'accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      console.log(await response.text());
+      return;
+    }
+
+    // goto doesn't seem to reload session, so it still looks like the
+    // user is logged in.
+    ///goto('/');
+    window.location = '/';
+  }
+
 </script>
 
 <div class="all-but-footer">
@@ -47,9 +70,16 @@
       <Row>
 	<Section>
 	  <IconButton class="material-icons" on:click={() => (open = !open)} >menu</IconButton>
-	  <!-- <TopBarTitle>TED</TopBarTitle> -->
+	  {#if $session.user }
+	    <TopBarTitle>{$session.user.username}</TopBarTitle>
+	  {/if}
 	</Section>
 	<Section align="end" toolbar>
+	  {#if $session.user }
+	    <Button href='/logout' on:click$preventDefault={logout} ><Label>Logout</Label></Button>
+	  {:else}
+	    <Button href='/login'><Label>Login</Label></Button>
+	{/if}
 	  <IconButton class="material-icons" aria-label="Account">account_circle</IconButton>
 	</Section>
       </Row>
@@ -85,7 +115,7 @@
            It adds a style for absolute positioning. -->
       <Scrim fixed={false} />
       <AppContent class="app-content">
-	<main class="main-content">
+	<main>
 	  <slot/>
 	</main>
       </AppContent>
@@ -98,14 +128,6 @@
 </footer>
 
 <style>
-  footer {
-    text-align: center;
-    background-color: var(--mdc-theme-secondary, #676778);
-    color: var(--mdc-theme-on-secondary, #fff);
-    position: sticky;
-    top: 100%;
-    height: 1.5rem;
-  }
   .all-but-footer {
     min-height: calc(100vh - 1.5em);
   }
@@ -123,21 +145,5 @@
     position: relative;
     flex-grow: 1;
   }
-  .main-content {
-    overflow: auto;
-    padding: 16px;
-    height: 100%;
-    box-sizing: border-box;
-  }
 
-  /* Hide everything above this top app bar. */
-  :global(app),
-  :global(body),
-  :global(html) {
-    display: block !important;
-    height: auto !important;
-    width: auto !important;
-    position: static !important;
-    margin: 0;
-  }
 </style>

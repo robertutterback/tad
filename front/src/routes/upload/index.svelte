@@ -1,10 +1,17 @@
+<script context="module">
+  export async function load({ session }) {
+    if (!session?.user)
+      return { status: 302, redirect: '/protected' };
+    return { props: { user: session.user } };
+  }
+</script>
+
 <script>
   import DatasetUpload from '$lib/upload/DatasetUpload.svelte';
   import FileView from '$lib/upload/FileView.svelte';
   import Fab, {Label as FabLabel, Icon} from '@smui/fab';
   import Textfield from '@smui/textfield';
   import Snackbar, { Actions, Label as SnackbarLabel } from '@smui/snackbar';
-  import Button from '@smui/button';
   import IconButton from '@smui/icon-button';
 
   let fileData = new Map();
@@ -67,7 +74,6 @@
     fileData.delete(path);
     fileInfo = fileInfo; fileData = fileData; // trigger updates
   }
-
 </script>
 
 

@@ -18,4 +18,3 @@
   {/if}
   <Text>{displayText}</Text>
 </Item>
-

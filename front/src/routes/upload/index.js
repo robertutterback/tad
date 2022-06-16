@@ -20,7 +20,7 @@ export async function post({ request }) {
       body: {"error": `Dataset ${name} already exists.`}
     }
   }
-  
+
   const pathInfo = JSON.parse(data.get('pathInfo'));
   data.delete('pathInfo');
   console.log(pathInfo);
