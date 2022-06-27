@@ -2,7 +2,7 @@
   export async function load({ session }) {
     if (!session?.user)
       return { status: 302, redirect: '/protected' };
-    return { props: { user: session.user } };
+    return {  };
   }
 </script>
 
@@ -16,7 +16,7 @@
 
   let fileData = new Map();
   let fileInfo = new Map();
-  let datasetName = 'test';
+  let datasetName = '';
   let supportedFileTypes = new Set(['txt'])
   let unsupportedFileTypes = new Set(['pdf', 'docx', 'xlsx']);
   let uploadInfoSnackbar, uploadInfoText;
@@ -24,7 +24,7 @@
   async function uploadDataset() {
 
     if ((fileData.size != fileInfo.size) ||
-	(Array.from(fileData.keys()).toString() != Array.from(fileInfo.keys()).toString())) {
+	      (Array.from(fileData.keys()).toString() != Array.from(fileInfo.keys()).toString())) {
       console.log(fileData.size);
       console.log(fileInfo.size);
       console.log(Array.from(fileData.keys()));
@@ -37,23 +37,26 @@
       uploadInfoSnackbar.open();
       return;
     }
-
     
     let data = new FormData();
+    let fileKeys = [];
     for (var [fullPath, file] of Array.from(fileInfo)) {
       if (file.type == 'Unsupported') {
-	const path = file.dirPath + file.filename;
-	uploadInfoText = `File ${path} not uploaded (file type not supported).`;
-	uploadInfoSnackbar.open();
+	      const path = file.dirPath + file.filename;
+	      uploadInfoText = `File ${path} not uploaded (file type not supported).`;
+        uploadInfoSnackbar.open();
+      } else if (file.filename.startsWith('.')) {
+        uploadInfoText = `Files cannot start with '.' (${file.filename})`;
+	      uploadInfoSnackbar.open();
       } else {
-	data.append(fullPath, fileData.get(fullPath));
+	      data.append(fullPath, fileData.get(fullPath));
+        fileKeys.push(fullPath);
       }
     }
     data.append("datasetName", datasetName);
 
     // Some files are unsupported, so lets remove them from `fileInfo` first
-    const uploaded = Array.from(fileInfo.keys()).filter(f => f.type != 'Unsupported');
-    const realInfo = new Map(uploaded.map(k => [k, fileInfo.get(k)]))
+    const realInfo = new Map(fileKeys.map(k => [k, fileInfo.get(k)]))
     data.append("pathInfo", JSON.stringify(Object.fromEntries(realInfo)));
 
     const response = await fetch("/upload", {
@@ -61,8 +64,10 @@
       headers: [["accept", "application/json"]],
       body: data});
 
-    if (!response.ok)
-      throw new Error(`upload error: ${response.status}`);
+    if (!response.ok) {
+      const text = (await response.json()).error;
+      throw new Error(`upload error: ${response.status} -- ${text}`);
+    }
 
     const text = await response.text();
     console.log(text);

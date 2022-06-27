@@ -9,6 +9,11 @@
   const dispatch = createEventDispatcher();
 
   export let fileInfo;
+
+  function invalid(info) {
+    return info.type === 'Unsupported' || info.filename.startsWith('.');
+
+  }
 </script>
 
 {#if fileInfo.size > 0 }
@@ -24,19 +29,24 @@
     <Body>
       {#each Array.from(fileInfo) as [path, info] (path) }
 	<Wrapper>
-	  <FileRow class="{info.type === 'Unsupported' ? 'unsupported' : ''}">
+	  <FileRow class="{invalid(info) ? 'invalid' : ''}">
 	    <Cell style="width: 40%;">{info.dirPath}</Cell>
-	    <Cell style="width: 20%;">{info.filename}</Cell>
-	    <Cell>{info.type}</Cell>
+	    <Cell style="width: 20%;" class="{info.filename.startsWith('.') ? 'problem' : ''}">
+	      {info.filename}
+	    </Cell>
+	    <Cell class="{info.type === 'Unsupported' ? 'problem' : ''}">{info.type}</Cell>
 	  <Cell>{info.size}</Cell>
 	  <Cell><IconButton class="material-icons"
-			      on:click={() => dispatch('removeFile', path)}>
+			      on:click$preventDefault={() => dispatch('removeFile', path)}>
 		delete
 	    </IconButton></Cell>
 	  </FileRow>
 	  {#if info.type === 'Unsupported'}
 	    <Tooltip>File type not supported; will not be uploaded.</Tooltip>
 	  {/if}
+	  {#if info.filename.startsWith('.')}
+	    <Tooltip>Filenames cannot start with '.'</Tooltip>
+          {/if}
 	</Wrapper>
       {/each}
     </Body>
@@ -55,9 +65,15 @@
     box-sizing: border-box;
     width: 100%;
   }
-  :global(.unsupported) {
-    border: 0.2em solid var(--mdc-theme-primary, #ff3e00);
+  :global(.invalid) {
     background-color: var(--mdc-theme-secondary, #676778);
     opacity: 0.5;
+  }
+  :global(.invalid:hover) {
+    background-color: var(--mdc-theme-secondary, #676778) !important;
+    opacity: 0.6;
+  }
+  :global(.problem) {
+    border: 0.2em solid var(--mdc-theme-primary, #ff3e00);
   }
 </style>

@@ -3,7 +3,7 @@
   /// components. However, as a Svelte beginner I'm worried that will
   /// make it harder to debug. So for now, I'm keeping all this here
   /// so I can look at all the code together.
-  import { session } from '$app/stores';
+  import { session, page } from '$app/stores';
 
   // Top bar stuff
   import TopAppBar, {
@@ -33,14 +33,10 @@
   import DMenuLink from '$lib/DMenuLink.svelte';
 
   let open = false;
-  let active = 'Inbox';
-  let datasets = ['Apple', 'Banana', 'Mango'];
-  let currentDataset = undefined;
-
-  function setActive(value) {
-    active = value;
-    open = false;
-  }
+  let active = $page.routeId?.split('/')[0] || '';
+  let datasets = $session.datasets || [];
+  let pageDataset = datasets.find(d => d.id == $page.params.datasetId);
+  let selectedDataset = pageDataset;
 
   async function logout(e) {
     const response = await fetch('/logout', {
@@ -70,8 +66,8 @@
       <Row>
 	<Section>
 	  <IconButton class="material-icons" on:click={() => (open = !open)} >menu</IconButton>
-	  {#if $session.user }
-	    <TopBarTitle>{$session.user.username}</TopBarTitle>
+	  {#if pageDataset }
+	    <TopBarTitle>{pageDataset.name} > {active} </TopBarTitle>
 	  {/if}
 	</Section>
 	<Section align="end" toolbar>
@@ -81,7 +77,10 @@
 	    <Button href='/login'><Label>Login</Label></Button>
 	{/if}
 	  <IconButton class="material-icons" aria-label="Account">account_circle</IconButton>
-	</Section>
+    {#if $session.user }
+    <Label>{$session.user.username}</Label>
+    {/if}
+	  </Section>
       </Row>
     </TopAppBar>
   </header>
@@ -92,20 +91,20 @@
            It adds a style for absolute positioning. -->
       <Drawer variant="modal" fixed={false} bind:open>
 	<Header>
-	  <DrawerTitle>TED</DrawerTitle>
+	  <DrawerTitle >TED</DrawerTitle>
 	  <!-- <Subtitle>Text Exploration Dashboard</Subtitle> -->
-	  <Autocomplete style="margin-top: 10%"
-			options={datasets} textfield$variant="outlined"
-			bind:value={currentDataset} label="Dataset" />
+    <Autocomplete style="margin: 0.5em 0rem;" options={datasets} textfield$variant="outlined"
+			bind:value={selectedDataset} label="Dataset" getOptionLabel={opt => opt?.name || ''} />
+    <Separator />
 	</Header>
 	<Content>
 	  <List>
 	    <DMenuLink route="/upload" bind:active bind:open icon="upload" />
-	    <DMenuLink route="/wrangle" bind:active bind:open icon="tab_unselected" />
-	    <DMenuLink route="/annotate" bind:active bind:open icon="new_label" />
-	    <DMenuLink route="/explore" bind:active bind:open icon="explore" />
-            <Separator />
-            <Subheader component={H6}>Dashboards</Subheader>
+      <DMenuLink route={`/wrangle/${selectedDataset?.id || ''}`} text="wrangle" bind:active bind:open icon="tab_unselected" disabled={!Boolean(selectedDataset)} />
+	    <DMenuLink route="/annotate" bind:active bind:open icon="new_label" disabled={!Boolean(selectedDataset)} />
+	    <DMenuLink route="/explore" bind:active bind:open icon="explore" disabled={!Boolean(selectedDataset)} />
+      <Separator />
+      <Subheader component={H6}>Dashboards</Subheader>      
 	    <DMenuLink route="/" bind:active bind:open text="(empty)" icon="bookmark" />
 	  </List>
 	</Content>
@@ -145,5 +144,10 @@
     position: relative;
     flex-grow: 1;
   }
+
+  /* Google thinks tables shouldn't overflow? */
+  :global(.mdc-data-table__table-container) {
+    overflow: visible;
+  } 
 
 </style>

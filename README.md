@@ -3,7 +3,19 @@
 Note that the `front/` directory still contains traditional "back-end"
 things to communicate with the NLP back-end.
 
-## User Interface
+## Setup
+
+### Backend
+
+redis, celery
+
+### Frontend
+
+Sveltekit (svelte+polka+...)
+
+## Notes
+
+### User Interface
 
 Material (by Google) looks nice and seems like a reasonable UI choice
 (though I don't know much about UI). I am using [Svelte

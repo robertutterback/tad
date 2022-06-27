@@ -12,7 +12,7 @@
   async function entryAsFile(entry) {
     let file = await new Promise((resolve,reject) => {
       entry.file(file => {
-	resolve(file);
+	      resolve(file);
       }, err => reject(err));
     });
     file.fullPath = entry.fullPath
@@ -89,9 +89,9 @@
     const origPath = file.fullPath || file.webkitRelativePath || '/' + file.name;
     const parts = origPath.split('/');
     parts.shift(); // should start with /
-    if (!includeTopLevelFolder && parts.length > 1)
+    if (!includeTopLevelFolder)
       parts.shift();
-    const dirPath = parts.slice(0,-1).join('/') + '/';
+    const dirPath = (parts.length == 1) ? '/' : '/' + parts.slice(0,-1).join('/') + '/';
     const filename = parts.at(-1);
     const size = prettySize(file.size);
     const type = guessType(filename);
@@ -99,9 +99,9 @@
   }
   
   /* type DataFile {
-       dirpath: string,
+       origPath: string,
+       dirPath: string, // dirpath + filename
        filename: string,
-       path: string, // dirpath + filename
        size: numeric,
        type: string // just a guess
      }

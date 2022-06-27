@@ -1,5 +1,7 @@
 import { parse } from 'cookie';
-import { getSession as getSessionFromApi } from '$lib/db';
+import { getSession as getSessionFromApi, getUser, getMultiInfo } from '$lib/db';
+import path from 'path';
+import fs from 'fs';
 
 const protectedPages = new Set(["upload", "wrangle", "annotate", "explore"]);
 
@@ -30,10 +32,14 @@ export async function handle({ event, resolve }) {
   return resolve(event);
 }
 
-export function getSession(event) {
-  if (!event || !event.locals)
-    return {};
-  return { user: event.locals.user };
+export async function getSession(event) {
+  let user = event?.locals?.user;
+  if (!user) return {};
+
+  let username = user.username;
+  let datasets = await getMultiInfo((await getUser(user.username)).accessibleDatasets);
+  
+  return { user, datasets };
 }
 
   
