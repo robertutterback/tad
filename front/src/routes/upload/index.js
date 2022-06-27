@@ -5,7 +5,7 @@ import { getUser, addDataset } from '$lib/db';
 import assert from 'node:assert/strict';
 
 export async function post({ request, locals }) {
-  const baseDir = path.normalize(path.join(process.cwd(), "..", "raw"));
+  const baseDir = path.normalize(path.join(process.cwd(), "..", "data", "raw"));
   const username = locals.user.username;
   const existingDatasets = (await getUser(username)).accessibleDatasets;
 

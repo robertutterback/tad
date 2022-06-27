@@ -8,8 +8,8 @@ const users = new Map([
 const datasetInfos = new Map([
   ['1655720242463-4ee2caad-0196-4e21-8e18-deac5836a2e9', {
     id: '1655720242463-4ee2caad-0196-4e21-8e18-deac5836a2e9',
-    name: 'BTI sample',
-    path: '/home/rob/src/tad/raw/1655720242463-4ee2caad-0196-4e21-8e18-deac5836a2e9',
+    name: 'BTI sample', 
+    path: '/home/rob/src/tad/data/raw/1655720242463-4ee2caad-0196-4e21-8e18-deac5836a2e9',
     owner: 'rob',
     readers: [],
     files: {

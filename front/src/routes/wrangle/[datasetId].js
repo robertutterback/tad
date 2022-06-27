@@ -1,4 +1,5 @@
 import { getDatasetInfo, getUser } from '$lib/db';
+import { hello } from '$lib/tasks';
 
 export async function get({params, locals}) {
   const datasets = (await getUser(locals.user?.username))?.accessibleDatasets;
@@ -19,10 +20,15 @@ export async function get({params, locals}) {
 export async function post({request, locals}) {
   console.log("post wrangle!");
   const data = await request.json();
-  console.log(data);
+  const handle = hello.applyAsync([data]);
+
+  console.log(handle.taskId)
+
+  const result = await handle.get();
+  console.log(result);
 
   return {
     status: 200,
-    body: {"taskid": "hello"}
+    body: {"taskId": handle.taskId, result }
   };
 }

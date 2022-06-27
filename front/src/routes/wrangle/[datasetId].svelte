@@ -5,6 +5,10 @@
   import Textfield from '@smui/textfield';
   import Fab, {Label as FabLabel, Icon as FabIcon} from '@smui/fab';
   import Select, { Option } from '@smui/select';
+  import Button from '@smui/button';
+  import Snackbar, { Label as SnackbarLabel, Actions } from '@smui/snackbar';
+  import IconButton from '@smui/icon-button';
+  import CircularProgress from '@smui/circular-progress';
 
   import ApplyButton from '$lib/wrangle/ApplyButton.svelte';
 
@@ -12,6 +16,9 @@
   let wrangledInfo;
   let levelNames = [];
   let selected;
+  let previewInProgress = '';
+  let snackbarComp;
+  let snackbarText = "(missing)";
 
   function makeWrangled(raw) {
     levelNames = computeNumLevels(Object.values(raw.files));
@@ -20,9 +27,13 @@
     for (let [path, f] of Object.entries(wrangled.files)) {
       if (['txt', 'docx'].includes(f.type)) {
         f.encoding = 'guess';
-        f.articleSplitter = f.metadataSplitter = '';
+        
+        // @TMP: just for debugging
+        f.articleSplitter = "--- start ---";
+        f.metadataSplitter = "Date: blah";
+        //f.articleSplitter = f.metadataSplitter = '';
       } else {
-        f.articleColumnName = '';
+        f.articleColumnName = 'Text'; //'';
         f.skipRows = 0;
       }
     }
@@ -79,8 +90,13 @@
     wrangledInfo = wrangledInfo; // trigger update
   }
 
+  function handleBlur(e) {
+  if (e.currentTarget.contains(e.relatedTarget)) return;
+  selected = '';
+  }
+
   async function submitWrangle() {
-        const response = await fetch(`/wrangle/${$page.params.datasetId}`, {
+    const response = await fetch(`/wrangle/${$page.params.datasetId}`, {
       method: "POST",
       headers: {
 	              'Content-Type': 'application/json',
@@ -97,10 +113,53 @@
     console.log(text);
   }
 
-function handleBlur(e) {
-  if (e.currentTarget.contains(e.relatedTarget)) return;
-  selected = '';
-}
+  async function preview(origPath) {
+    previewInProgress = origPath;
+    const jsonHeaders = { 'Content-Type': 'application/json', 'accept': 'application/json' };
+    let data = JSON.parse(JSON.stringify(rawInfo)); // deep copy
+    data.preview = wrangledInfo.files[origPath];
+
+    const response = await fetch(`/wrangle/preview`, {
+      method: "POST",
+      headers: jsonHeaders,
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      const text = (await response.json()).error;
+      throw new Error(`wrangle error: ${response.status} -- ${text}`);
+    }
+
+    const result = await response.json();
+    const taskId = result.taskId;
+    snackbarText = `Preview task id: ${taskId}`;
+    snackbarComp.open();
+
+
+    const timer = setInterval(async () => {
+      console.log("check");
+      const response = await fetch(`/wrangle/preview?datasetId=${$page.params.datasetId}&taskId=${taskId}`, {
+        method: "GET",
+        headers: jsonHeaders
+      });
+      if (!response.ok) {
+        const text = (await response.json()).error;
+        previewInProgress = '';
+        snackbarComp.close();
+        snackbarText = `Error: ${text}`;
+        snackbarComp.open();
+        clearInterval(timer);
+        throw new Error(`get-result error: ${response.status} -- ${text}`);
+      }
+      const result = await response.json();
+      if (result.status === 'done') {
+        previewInProgress = '';
+        clearInterval(timer);
+        alert(`Preview done: ${result.result}`);
+        return;
+      }
+    }, 1000);
+  }
 </script>
 
 
@@ -127,6 +186,7 @@ function handleBlur(e) {
     <Cell>Type/Encoding</Cell>
     <Cell>Article Info</Cell>
     <Cell>Metadata Info</Cell>
+    <Cell></Cell>
   </Row>
   </Head>
   <Body>
@@ -193,6 +253,15 @@ function handleBlur(e) {
           {/if}
           {/if}
         </Cell>
+        <Cell>
+          <div style="display: flex; justify-content: center">
+          {#if previewInProgress === file.origPath}
+            <CircularProgress style="height: 32px; width: 32px;" indeterminate />
+          {:else}
+            <Button on:click$preventDefault={preview(file.origPath)} disabled={previewInProgress}>Preview</Button>
+          {/if}
+          </div>
+        </Cell>
       </Row>
     {/each}
   </Body>
@@ -208,6 +277,12 @@ function handleBlur(e) {
 </div>
 </form>
 
+<Snackbar bind:this={snackbarComp} labelText={snackbarText} timeoutMs={5000}>
+  <SnackbarLabel />
+  <Actions>
+    <IconButton class="material-icons" title="Dismiss">close</IconButton>
+  </Actions>
+</Snackbar>
 {/if}
 
 <style>

@@ -1,7 +1,5 @@
 import { parse } from 'cookie';
 import { getSession as getSessionFromApi, getUser, getMultiInfo } from '$lib/db';
-import path from 'path';
-import fs from 'fs';
 
 const protectedPages = new Set(["upload", "wrangle", "annotate", "explore"]);
 
