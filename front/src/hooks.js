@@ -1,5 +1,5 @@
 import { parse } from 'cookie';
-import { getSession as getSessionFromApi, getUser, getMultiInfo } from '$lib/db';
+import { getSession as getSessionFromApi, getUser, getAccessibleDatasets } from '$lib/db';
 
 const protectedPages = new Set(["upload", "wrangle", "annotate", "explore"]);
 
@@ -35,8 +35,9 @@ export async function getSession(event) {
   if (!user) return {};
 
   let username = user.username;
-  let datasets = await getMultiInfo((await getUser(user.username)).accessibleDatasets);
-  
+  let datasets = await getAccessibleDatasets(username);
+  datasets = datasets.map(({_id, ...r}) => ({_id: _id.toString(), ...r}));
+  //console.log(`Session datasets: ${JSON.stringify(datasets, null, 2)}`);
   return { user, datasets };
 }
 

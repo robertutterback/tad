@@ -17,8 +17,8 @@
   let fileData = new Map();
   let fileInfo = new Map();
   let datasetName = '';
-  let supportedFileTypes = new Set(['txt'])
-  let unsupportedFileTypes = new Set(['pdf', 'docx', 'xlsx']);
+  let supportedFileTypes = new Set(['txt', 'docx', 'xlsx'])
+  let unsupportedFileTypes = new Set(['pdf']);
   let uploadInfoSnackbar, uploadInfoText;
 
   async function uploadDataset() {

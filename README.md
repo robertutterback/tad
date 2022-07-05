@@ -5,6 +5,10 @@ things to communicate with the NLP back-end.
 
 ## Setup
 
+TODO: Recursive makefiles for setting up and starting
+everything. Eventually Docker so that non-experts will have an easier
+time.
+
 ### Backend
 
 redis, celery

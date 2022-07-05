@@ -1,15 +1,16 @@
-import { getDatasetInfo, getUser } from '$lib/db';
+import { getDatasetInfo } from '$lib/db';
 import { hello } from '$lib/tasks';
 
+// Loaded before the page, passing `rawInfo` prop.
 export async function get({params, locals}) {
-  const datasets = (await getUser(locals.user?.username))?.accessibleDatasets;
+  const username = locals.user?.username;
   const id = params.datasetId;
-  if (!datasets || !datasets.includes(id))
+  const info = await getDatasetInfo(id);
+  if (info.owner !== username && !info.readers.includes(username)) {
     return {
       body: { rawInfo: {error: "Dataset not found or not accessible to you."}}
     };
-  
-  const info = await getDatasetInfo(id);
+  }
   return {
     body: {
       rawInfo: info

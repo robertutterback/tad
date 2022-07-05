@@ -100,7 +100,7 @@
 	<Content>
 	  <List>
 	    <DMenuLink route="/upload" bind:active bind:open icon="upload" />
-      <DMenuLink route={`/wrangle/${selectedDataset?.id || ''}`} text="wrangle" bind:active bind:open icon="tab_unselected" disabled={!Boolean(selectedDataset)} />
+      <DMenuLink route={`/wrangle/${selectedDataset?._id || ''}`} text="wrangle" bind:active bind:open icon="tab_unselected" disabled={!Boolean(selectedDataset)} />
 	    <DMenuLink route="/annotate" bind:active bind:open icon="new_label" disabled={!Boolean(selectedDataset)} />
 	    <DMenuLink route="/explore" bind:active bind:open icon="explore" disabled={!Boolean(selectedDataset)} />
       <Separator />

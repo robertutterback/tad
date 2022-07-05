@@ -7,7 +7,7 @@
   
   export let fileData, fileInfo;
   export let supportedFileTypes, unsupportedFileTypes;
-  let includeTopLevelFolder = true;
+  let includeTopLevelFolder = false;
 
   async function entryAsFile(entry) {
     let file = await new Promise((resolve,reject) => {
